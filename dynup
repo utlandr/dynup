@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#================================================================================
+#
+#
+#	FreeDNS update script for useless modems that cannot do the same thing.
+#
+#	Reed Bell	-	rbell11235@hotmail.co.nz
+#
+#
+#=================================================================================
+
+#	Defaults
+	freq=600
+	query=
+
+#	Help/Usage function
+usage() {	echo -e "\nUsage:	dynup [-q <string>] [-f <int>]\n"
+		echo -e "-h  	Show this help message."
+		echo -e "-q	FreeDNS update url."
+		echo -e "-f	Update frequency (seconds)."
+		exit 0
+	}
+
+
+#	Call function that pings a webserver for the external IP
+call() {	wget -qO- https://checkip.amazonaws.com/
+	}
+
+
+while getopts "q:f:hd" opt; do
+	case ${opt} in
+
+		h ) usage
+		 ;;
+
+		q ) query=$OPTARG
+		 ;;
+
+		f ) freq=$OPTARG
+		 ;;
+
+		\? ) usage
+		 ;;
+	esac
+done
+
+base=$(call)
+while [ 1 == 1 ]
+do
+	sleep $freq
+	check=$(call)
+
+	if [ $check != $base ]
+	then
+		return=$(wget --no-check-certificate -qO- $query)
+		if [[  $return =~ "ERROR"  ]]
+		then
+			printf "Error attempting change in DNS assignment. Original assignment %s maintained\n" $base
+		else
+			base=$check
+			printf "DNS updated to %s\n" $check
+		fi
+	else
+		continue
+
+	fi
+done
