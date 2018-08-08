@@ -10,34 +10,70 @@
 #
 #=================================================================================
 
-#	Defaults
-	freq=600
-	query=
+# Functions
+usage() { echo -e "\nUsage:	dynup [-h] [-q <string>] [-f <int>]\n"
+		 echo -e "-d	Detach and daemonize script."
+		 echo -e "-f	Update frequency (seconds)."
+		 echo -e "-h  	Show this help message."
+		 echo -e "-q	FreeDNS update url."
+		 exit 0
+}
 
-#	Help/Usage function
-usage() {	echo -e "\nUsage:	dynup [-q <string>] [-f <int>]\n"
-		echo -e "-h  	Show this help message."
-		echo -e "-q	FreeDNS update url."
-		echo -e "-f	Update frequency (seconds)."
-		exit 0
+call() { wget -qO- https://checkip.amazonaws.com/ 
 	}
+ 
+monitor(){
+	base=$(call)
+	
+	while true;
+	do
+		sleep $freq
+		check=$(call)
+		if [ $check != $base ]
+		then
+			return=$(wget --no-check-certificate -qO- $query)
+			if [[  $return =~ "ERROR"  ]]
+			then
+				printf "Error attempting change in DNS assignment. Original assignment %s maintained\n" $base
+			else
+				base=$check
+				printf "DNS updated to %s\n" $check
+			fi
+		else
+			continue
 
+		fi
+	done
+}
 
-#	Call function that pings a webserver for the external IP
-call() {	wget -qO- https://checkip.amazonaws.com/
-	}
+filter_args() {
+	if [ -z "$query" ]; then
+		echo -e "Error:  no update URL supplied"
+		usage
+		exit 1
+	
+	fi
+}
 
+# Defaults
+freq=600
+query=
+daemonize=false
 
+# Parse arguments	
 while getopts "q:f:hd" opt; do
 	case ${opt} in
 
+		d ) daemonize=true
+		 ;;
+
+		f ) freq=$OPTARG
+		 ;;
+	
 		h ) usage
 		 ;;
 
 		q ) query=$OPTARG
-		 ;;
-
-		f ) freq=$OPTARG
 		 ;;
 
 		\? ) usage
@@ -45,24 +81,18 @@ while getopts "q:f:hd" opt; do
 	esac
 done
 
-base=$(call)
-while [ 1 == 1 ]
-do
-	sleep $freq
-	check=$(call)
 
-	if [ $check != $base ]
-	then
-		return=$(wget --no-check-certificate -qO- $query)
-		if [[  $return =~ "ERROR"  ]]
-		then
-			printf "Error attempting change in DNS assignment. Original assignment %s maintained\n" $base
-		else
-			base=$check
-			printf "DNS updated to %s\n" $check
-		fi
-	else
-		continue
+filter_args
 
-	fi
-done
+# Runtime
+if $daemonize; then
+
+	echo -e "Running as Daemon\n"
+	(monitor;) 0<&- &> log.txt &
+	disown
+
+else
+	echo -e "Monitoring DNS"
+	
+	monitor
+fi
