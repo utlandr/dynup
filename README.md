@@ -12,8 +12,6 @@ And run with your personalized FreeDNS 'Direct URL' DNS update link:
 #### Improvements
 I hope to add the following improvements in the future:
 
-  - Daemonize option so the script runs independently of the user
   - Multiple test webservers/option for users to determine a webserver themselves
   - Multiple servers to monitor (under the same subnet)
-  - Alternative methods to the update process
- 
+  - Alternative methods to the update process 
