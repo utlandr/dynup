@@ -9,11 +9,14 @@ Make the file executable (if it isn't already) using:
 And run with your personalized FreeDNS 'Direct URL' DNS update link:
 `dynup -q <url>`
 
-#### Improvements
-I hope to add the following improvements in the future:
+#### Features
 
-  - Daemonize option so the script runs independently of the user
+  - Script can run as a daemon.
+
+#### Improvements
+Features that I am working on:
+
   - Multiple test webservers/option for users to determine a webserver themselves
   - Multiple servers to monitor (under the same subnet)
-  - Alternative methods to the update process
- 
+  - Alternative methods to the update process 
+  - Better logging. 
