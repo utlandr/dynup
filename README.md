@@ -12,15 +12,15 @@ And run with your personalized FreeDNS 'Direct URL' DNS update link:
 `dynup -q <url>`
 
 #### Features
-
-  - Script can detach from terminal (technically not a daemon).
-  - Basic logging of key events (DNS not reachable, External IP change)
+  - Script can detach from terminal and run in background (technically not a daemon)
+  - Event logging
+  - No login credentials required
 
 #### Improvements
 Features that I am working on:
 
-  - Multiple test webservers/option for users to determine a webserver themselves
+  - Multiple test webservers
   - Track multiple DNS entries
   - Alternative/safer methods to the update process 
   - Additional security methods (like enforcing HTTPS)
-  - Better logging.
+  - systemd setups to support running as a daemon on Debian based distros
