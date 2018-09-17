@@ -11,12 +11,18 @@
 #=================================================================================
 
 # Functions
-usage() { echo -e "\nUsage:	dynup [-h] [-q <string>] [-f <int>]\n"
-		 echo -e "-d	Detach and daemonize script."
+usage() { echo -e "\nUsage:	dynup [-d|-h][-f <int>][-l <str>][-q <str>] \n"
+		 echo -e "-d	Run in background using systemd."
 		 echo -e "-f	Update frequency (seconds)."
 		 echo -e "-h  	Show this help message."
+		 echo -e "-l	Log updates to a file."
 		 echo -e "-q	FreeDNS update url."
+		 echo -e "-v	Increase verbosity.\n"
 		 exit 0
+}
+
+update_log(){ 
+	echo -e $(date +"%x||%X")"\t$1" >> "$2"
 }
 
 call() { wget -qO- https://checkip.amazonaws.com/ 
@@ -34,34 +40,49 @@ monitor(){
 			return=$(wget --no-check-certificate -qO- $query)
 			if [[  $return =~ "ERROR"  ]]
 			then
-				printf "Error attempting change in DNS assignment. Original assignment %s maintained\n" $base
+				msg=$(printf "Error attempting change in DNS assignment. Original assignment %s maintained\n" $base)
+				update_log "$msg" "$log_file"
+
 			else
 				base=$check
-				printf "DNS updated to %s\n" $check
+				msg=$(printf "DNS updated to %s\n" $check)
+				update_log "$msg" "$log_file"
 			fi
+
 		else
-			continue
+			msg=$(printf "No external IP change detected. Current assignment maintained.\n")	
+			[ $verbose == true ] && update_log "$msg" "$log_file"
 
 		fi
 	done
 }
 
 filter_args() {
-	if [ -z "$query" ]; then
-		echo -e "Error:  no update URL supplied"
+	if [[ $1 -eq 0 ]]; then
+		usage
+		exit 0
+	
+	elif [ -z "$query" ]; then
+		echo -e "Error:  mandatory -q flag missing"
 		usage
 		exit 1
-	
+
+	elif [ -z "$log_file" ]; then
+		echo -e "Error: no log filename was supplied"
+		usage
+		exit 1	
 	fi
 }
 
 # Defaults
-freq=600
-query=
 daemonize=false
+freq=600
+log_file="/dev/stdout"
+query=
+verbose=false
 
 # Parse arguments	
-while getopts "q:f:hd" opt; do
+while getopts "q:f:hdvl:" opt; do
 	case ${opt} in
 
 		d ) daemonize=true
@@ -73,7 +94,13 @@ while getopts "q:f:hd" opt; do
 		h ) usage
 		 ;;
 
+		l ) log_file=$OPTARG
+		 ;;
+
 		q ) query=$OPTARG
+		 ;;
+
+	 	v ) verbose=true
 		 ;;
 
 		\? ) usage
@@ -81,18 +108,16 @@ while getopts "q:f:hd" opt; do
 	esac
 done
 
-
-filter_args
+filter_args $#
 
 # Runtime
 if $daemonize; then
-
-	echo -e "Running as Daemon\n"
-	(monitor;) 0<&- &> log.txt &
+	update_log "Started Monitoring DNS every ${freq}s in Daemon mode." $log_file
+	(monitor;) 0<&- &> /dev/null &
 	disown
 
 else
-	echo -e "Monitoring DNS"
-	
+	update_log "Started Monitoring DNS every ${freq}s" $log_file
 	monitor
+
 fi
