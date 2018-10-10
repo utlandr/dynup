@@ -12,13 +12,14 @@
 
 # Functions
 usage() { echo -e "\nUsage:	dynup [-d|-h][-f <int>][-l <str>][-q <str>] \n"
-		 echo -e "-d	Run in background using systemd."
+		 echo -e "-d	Detach process and run in background."
 		 echo -e "-f	Update frequency (seconds)."
 		 echo -e "-h  	Show this help message."
 		 echo -e "-l	Log updates to a file."
 		 echo -e "-q	FreeDNS update url."
-		 echo -e "-v	Increase verbosity.\n"
-		 exit 0
+		 echo -e "-v	Increase verbosity.\n\n"
+		 echo -e "NOTE:\t(-d) flag is not recommended for most long term setups.\n\tSee README.md to run 'dynup' with systemd."
+		 exit 0 
 }
 
 update_log(){ 
