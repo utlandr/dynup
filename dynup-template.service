@@ -1,0 +1,9 @@
+[Unit]
+Description=FreeDNS domain registry monitor.
+
+[Service]
+Type=oneshot
+ExecStart=/path/to/dynup -l <logfile> -q <query> -f <frequency> -v <verbosity> 
+
+[Install]
+WantedBy=multi-user.target
