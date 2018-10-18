@@ -4,23 +4,39 @@ dynup is a DDNS updater implemented in Bash. It pings a single webserver for an 
 
 My script only requires a FreeDNS update URL. While this is safer than parsing login credentials, be aware that anyone with the update URL can redirect the domain name.
 
+### Features
+  - Script can detach from terminal and run in background (technically not a daemon)
+  - Event logging
+  - No login credentials required
+  - Simple systemd setup 
+
 ### Installation
+
+#### Command Line  
 Make the file executable (if it isn't already) using:
 `chmod +x dynup`
 
 And run with your personalized FreeDNS 'Direct URL' DNS update link:
 `dynup -q <url>`
 
-#### Features
-  - Script can detach from terminal and run in background (technically not a daemon)
-  - Event logging
-  - No login credentials required
+#### Systemd (Debian)
+Use `systemd-setup.sh` to set `dynup` as a systemd service. Alternatively, you can edit the included `dynup-template.service` file yourself.
 
-#### Improvements
-Features that I am working on:
+### Options and Usage
+```
+Usage:	dynup [-d|-h|-v][-f <int>][-l <str>][-q <str>] 
 
+-d	Detach process and run in background.
+-f	Update frequency (seconds).
+-h  	Show this help message.
+-l	Log updates to a file.
+-q	FreeDNS update url.
+-v	Increase verbosity.
+
+```
+
+### Improvements
   - Multiple test webservers
   - Track multiple DNS entries
   - Alternative/safer methods to the update process 
-  - Additional security methods (like enforcing HTTPS)
-  - systemd setups to support running as a daemon on Debian based distros
+  - Additional security methods (enforcing HTTPS)
