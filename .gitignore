@@ -1,2 +1,3 @@
 # Ignore text files (which are mostly notes and log files at runtime) 
 *.txt
+*.log
