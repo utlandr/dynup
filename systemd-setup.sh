@@ -82,7 +82,7 @@ if [ $stat_exit -ne 0 ]; then
 		printf "User bin folder not detected. Enter a location to copy dynup [default: $dynup_dir_def ]\n\n"
 		printf "Directory:  "
 		read dynup_dir
-		if [ -z dynup_dir ];
+		if [ -z $dynup_dir ];
 		then 
 			dynup_dir=$dynup_dir_def 
 		
