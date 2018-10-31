@@ -10,6 +10,14 @@
 #
 #=================================================================================
 
+
+# Defaults
+daemonize=false
+freq=600
+log_file="/dev/stdout"
+query=
+verbose=false
+
 # Functions
 usage() { echo -e "\nUsage:	dynup [-d|-h][-f <int>][-l <str>][-q <str>] \n"
 		 echo -e "-d	Detach process and run in background."
@@ -23,14 +31,34 @@ usage() { echo -e "\nUsage:	dynup [-d|-h][-f <int>][-l <str>][-q <str>] \n"
 }
 
 update_log(){ 
-	echo -e $(date +"%x||%X")"\t$1" >> "$2"
+	echo -e $(date +"%x||%X")"\t$1" >> "$2" 
 }
 
-call() { wget -qO- https://checkip.amazonaws.com/ 
-	}
- 
+call(){ 
+	wget -qO- https://checkip.amazonaws.com/ 
+}
+
+update_dns(){	
+	wget --no-check-certificate  -qO- $1 
+}
+
 monitor(){
+	
+	update_log "Attempting initial update" "$log_file"	
 	base=$(call)
+	response=$(update_dns $query | sed 's/ to \([0-9]\{1,3\}.\)\{3,3\}\([0-9]\{1,3\}\)//')
+
+	if [[ $response =~ "Updated" ]]
+	then
+		msg=$response
+	
+	else
+		msg="Initial test complete: IP address maintained"
+	
+	fi
+	
+	update_log "$msg" "$log_file"	
+	update_log "Now checking every ${freq}s." "$log_file"	
 	
 	while true;
 	do
@@ -38,8 +66,8 @@ monitor(){
 		check=$(call)
 		if [ $check != $base ]
 		then
-			return=$(wget --no-check-certificate -qO- $query)
-			if [[  $return =~ "ERROR"  ]]
+			response=$(update_dns "$query")
+			if [[  $response =~ "ERROR"  ]]
 			then
 				msg=$(printf "Error attempting change in DNS assignment. Original assignment %s maintained\n" $base)
 				update_log "$msg" "$log_file"
@@ -75,12 +103,6 @@ filter_args() {
 	fi
 }
 
-# Defaults
-daemonize=false
-freq=600
-log_file="/dev/stdout"
-query=
-verbose=false
 
 # Parse arguments	
 while getopts "q:f:hdvl:" opt; do
@@ -113,12 +135,12 @@ filter_args $#
 
 # Runtime
 if $daemonize; then
-	update_log "Started Monitoring DNS every ${freq}s in Daemon mode." $log_file
+	update_log "Started dynup monitor script [Update Frequency = ${freq}s]. Now detaching." $log_file
 	(monitor;) 0<&- &> /dev/null &
 	disown
 
 else
-	update_log "Started Monitoring DNS every ${freq}s" $log_file
+	update_log "Started dynup monitor script [Update Frequency = ${freq}s]" $log_file
 	monitor
 
 fi
