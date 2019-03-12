@@ -64,7 +64,7 @@ monitor(){
 	do
 		sleep $freq
 		check=$(call)
-		if [ $check != $base ]
+		if [[ $check != $base ]]
 		then
 			response=$(update_dns "$query")
 			if [[  $response =~ "ERROR"  ]]
@@ -91,12 +91,12 @@ filter_args() {
 		usage
 		exit 0
 	
-	elif [ -z "$query" ]; then
+	elif [[ -z "$query" ]]; then
 		echo -e "Error:  mandatory -q flag missing"
 		usage
 		exit 1
 
-	elif [ -z "$log_file" ]; then
+	elif [[ -z "$log_file" ]]; then
 		echo -e "Error: no log filename was supplied"
 		usage
 		exit 1	
